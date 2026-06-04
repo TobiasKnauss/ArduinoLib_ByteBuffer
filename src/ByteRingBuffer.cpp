@@ -1,12 +1,12 @@
 #include "MemoryTools_Memory.h"
-#include "MemoryTools_RingBuffer.h"
+#include "ByteRingBuffer.h"
 
 using namespace MemoryTools;
 
 //--------------------------------------------------------------------
-bool RingBuffer::Create ( uint16_t      i_DataLength,
-                          uint8_t       i_DefaultValue,
-                          RingBuffer*&  o_pRingBuffer)
+bool ByteRingBuffer::Create ( uint16_t          i_DataLength,
+                              uint8_t           i_DefaultValue,
+                              ByteRingBuffer*&  o_pRingBuffer)
 {
   if (i_DataLength < 1
   ||  i_DataLength > c_MaxBufferSize)
@@ -18,12 +18,12 @@ bool RingBuffer::Create ( uint16_t      i_DataLength,
   if (!Memory::Allocate (pData, i_DataLength, i_DefaultValue))
     return false;
 
-  o_pRingBuffer = new RingBuffer (pData, i_DataLength, i_DefaultValue);
+  o_pRingBuffer = new ByteRingBuffer (pData, i_DataLength, i_DefaultValue);
   return true;
 }
 
 //--------------------------------------------------------------------
-RingBuffer::~RingBuffer ()
+ByteRingBuffer::~ByteRingBuffer ()
 {
   delete (m_pData);
   m_pData         = nullptr;
@@ -33,9 +33,9 @@ RingBuffer::~RingBuffer ()
 }
 
 //--------------------------------------------------------------------
-RingBuffer::RingBuffer (uint8_t*  i_pData,
-                        uint16_t  i_DataLength,
-                        uint8_t   i_DefaultValue)
+ByteRingBuffer::ByteRingBuffer (uint8_t*  i_pData,
+                                uint16_t  i_DataLength,
+                                uint8_t   i_DefaultValue)
 {
   m_pData         = i_pData;
   m_DataLength    = i_DataLength;
@@ -46,37 +46,37 @@ RingBuffer::RingBuffer (uint8_t*  i_pData,
 }
 
 //--------------------------------------------------------------------
-uint16_t RingBuffer::get_CurrentReadOffset ()
+uint16_t ByteRingBuffer::get_CurrentReadOffset ()
 {
   return m_pCurrentRead - m_pData;
 }
 
 //--------------------------------------------------------------------
-uint16_t RingBuffer::get_CurrentWriteOffset ()
+uint16_t ByteRingBuffer::get_CurrentWriteOffset ()
 {
   return m_pCurrentWrite - m_pData;
 }
 
 //--------------------------------------------------------------------
-uint8_t* RingBuffer::get_pData ()
+uint8_t* ByteRingBuffer::get_pData ()
 {
   return m_pData;
 }
 
 //--------------------------------------------------------------------
-uint16_t RingBuffer::get_Length ()
+uint16_t ByteRingBuffer::get_Length ()
 {
   return m_DataLength;
 }
 
 //--------------------------------------------------------------------
-void RingBuffer::Clear ()
+void ByteRingBuffer::Clear ()
 {
   memset (m_pData, m_DefaultValue, m_DataLength);
 }
 
 //--------------------------------------------------------------------
-void RingBuffer::MoveReadPointer (uint16_t i_Count)
+void ByteRingBuffer::MoveReadPointer (uint16_t i_Count)
 {
   m_pCurrentRead += i_Count;
   if (m_pCurrentRead >= m_pAfterData)
@@ -84,7 +84,7 @@ void RingBuffer::MoveReadPointer (uint16_t i_Count)
 }
 
 //--------------------------------------------------------------------
-void RingBuffer::MoveWritePointer (uint16_t i_Count)
+void ByteRingBuffer::MoveWritePointer (uint16_t i_Count)
 {
   m_pCurrentWrite += i_Count;
   if (m_pCurrentWrite >= m_pAfterData)
@@ -92,8 +92,8 @@ void RingBuffer::MoveWritePointer (uint16_t i_Count)
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::SetReadPointer ( uint16_t  i_Offset,
-                                  bool      i_WrapIfNeeded)
+bool ByteRingBuffer::SetReadPointer ( uint16_t  i_Offset,
+                                      bool      i_WrapIfNeeded)
 {
   if (i_Offset >= m_DataLength
   &&  i_WrapIfNeeded)
@@ -106,8 +106,8 @@ bool RingBuffer::SetReadPointer ( uint16_t  i_Offset,
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::SetWritePointer (uint16_t  i_Offset,
-                                  bool      i_WrapIfNeeded)
+bool ByteRingBuffer::SetWritePointer (uint16_t  i_Offset,
+                                      bool      i_WrapIfNeeded)
 {
   if (i_Offset >= m_DataLength
   &&  i_WrapIfNeeded)
@@ -120,7 +120,7 @@ bool RingBuffer::SetWritePointer (uint16_t  i_Offset,
 }
 
 //--------------------------------------------------------------------
-uint8_t RingBuffer::ReadByteAndMovePtr ()
+uint8_t ByteRingBuffer::ReadByteAndMovePtr ()
 {
   uint8_t value = *m_pCurrentRead;
   MoveReadPointer ();
@@ -128,9 +128,9 @@ uint8_t RingBuffer::ReadByteAndMovePtr ()
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::ReadBytesAndMovePtr ( uint16_t  i_ByteCount,
-                                      uint8_t*  i_pDestination,
-                                      bool      i_InvertByteOrder)
+bool ByteRingBuffer::ReadBytesAndMovePtr (uint16_t  i_ByteCount,
+                                          uint8_t*  i_pDestination,
+                                          bool      i_InvertByteOrder)
 {
   if (i_pDestination == nullptr)
     return false;
@@ -169,62 +169,62 @@ bool RingBuffer::ReadBytesAndMovePtr ( uint16_t  i_ByteCount,
 }
 
 //--------------------------------------------------------------------
-void RingBuffer::ReadValueAndMovePtr (bool& o_Value)
+void ByteRingBuffer::ReadValueAndMovePtr (bool& o_Value)
 {
   o_Value = ReadByteAndMovePtr () != 0;
 }
 
 //--------------------------------------------------------------------
-void RingBuffer::ReadValueAndMovePtr (uint8_t& o_Value)
+void ByteRingBuffer::ReadValueAndMovePtr (uint8_t& o_Value)
 {
   o_Value = ReadByteAndMovePtr ();
 }
 
 //--------------------------------------------------------------------
-void RingBuffer::ReadValueAndMovePtr (int8_t& o_Value)
+void ByteRingBuffer::ReadValueAndMovePtr (int8_t& o_Value)
 {
   o_Value = (int8_t)ReadByteAndMovePtr ();
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::ReadValueAndMovePtr ( uint16_t& o_Value,
-                                      bool      i_InvertByteOrder)
+bool ByteRingBuffer::ReadValueAndMovePtr (uint16_t& o_Value,
+                                          bool      i_InvertByteOrder)
 {
   return ReadBytesAndMovePtr (sizeof (uint16_t), (uint8_t*)&o_Value, i_InvertByteOrder);
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::ReadValueAndMovePtr ( int16_t&  o_Value,
-                                      bool      i_InvertByteOrder)
+bool ByteRingBuffer::ReadValueAndMovePtr (int16_t&  o_Value,
+                                          bool      i_InvertByteOrder)
 {
   return ReadBytesAndMovePtr (sizeof (int16_t), (uint8_t*)&o_Value, i_InvertByteOrder);
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::ReadValueAndMovePtr ( uint32_t& o_Value,
-                                      bool      i_InvertByteOrder)
+bool ByteRingBuffer::ReadValueAndMovePtr (uint32_t& o_Value,
+                                          bool      i_InvertByteOrder)
 {
   return ReadBytesAndMovePtr (sizeof (uint32_t), (uint8_t*)&o_Value, i_InvertByteOrder);
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::ReadValueAndMovePtr ( int32_t&  o_Value,
-                                      bool      i_InvertByteOrder)
+bool ByteRingBuffer::ReadValueAndMovePtr (int32_t&  o_Value,
+                                          bool      i_InvertByteOrder)
 {
   return ReadBytesAndMovePtr (sizeof (int32_t), (uint8_t*)&o_Value, i_InvertByteOrder);
 }
 
 //--------------------------------------------------------------------
-void RingBuffer::WriteByteAndMovePtr (uint8_t i_Value)
+void ByteRingBuffer::WriteByteAndMovePtr (uint8_t i_Value)
 {
   *m_pCurrentWrite = i_Value;
   MoveWritePointer ();
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::WriteBytesAndMovePtr ( uint16_t  i_ByteCount,
-                                        uint8_t*  i_pSource,
-                                        bool      i_InvertByteOrder)
+bool ByteRingBuffer::WriteBytesAndMovePtr ( uint16_t  i_ByteCount,
+                                            uint8_t*  i_pSource,
+                                            bool      i_InvertByteOrder)
 {
   if (i_pSource == nullptr)
     return false;
@@ -263,55 +263,55 @@ bool RingBuffer::WriteBytesAndMovePtr ( uint16_t  i_ByteCount,
 }
 
 //--------------------------------------------------------------------
-void RingBuffer::WriteValueAndMovePtr (bool i_Value)
+void ByteRingBuffer::WriteValueAndMovePtr (bool i_Value)
 {
   WriteByteAndMovePtr (i_Value ? 1 : 0);
 }
 
 //--------------------------------------------------------------------
-void RingBuffer::WriteValueAndMovePtr (uint8_t i_Value)
+void ByteRingBuffer::WriteValueAndMovePtr (uint8_t i_Value)
 {
   WriteByteAndMovePtr (i_Value);
 }
 
 //--------------------------------------------------------------------
-void RingBuffer::WriteValueAndMovePtr (int8_t i_Value)
+void ByteRingBuffer::WriteValueAndMovePtr (int8_t i_Value)
 {
   WriteByteAndMovePtr ((uint8_t)i_Value);
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::WriteValueAndMovePtr ( uint16_t  i_Value,
-                                        bool      i_InvertByteOrder)
+bool ByteRingBuffer::WriteValueAndMovePtr ( uint16_t  i_Value,
+                                            bool      i_InvertByteOrder)
 {
   return WriteBytesAndMovePtr (sizeof (uint16_t), (uint8_t*)&i_Value, i_InvertByteOrder);
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::WriteValueAndMovePtr ( int16_t   i_Value,
-                                        bool      i_InvertByteOrder)
+bool ByteRingBuffer::WriteValueAndMovePtr ( int16_t   i_Value,
+                                            bool      i_InvertByteOrder)
 {
   return WriteBytesAndMovePtr (sizeof (int16_t), (uint8_t*)&i_Value, i_InvertByteOrder);
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::WriteValueAndMovePtr ( uint32_t  i_Value,
-                                        bool      i_InvertByteOrder)
+bool ByteRingBuffer::WriteValueAndMovePtr ( uint32_t  i_Value,
+                                            bool      i_InvertByteOrder)
 {
   return WriteBytesAndMovePtr (sizeof (uint32_t), (uint8_t*)&i_Value, i_InvertByteOrder);
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::WriteValueAndMovePtr ( int32_t   i_Value,
-                                        bool      i_InvertByteOrder)
+bool ByteRingBuffer::WriteValueAndMovePtr ( int32_t   i_Value,
+                                            bool      i_InvertByteOrder)
 {
   return WriteBytesAndMovePtr (sizeof (int32_t), (uint8_t*)&i_Value, i_InvertByteOrder);
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::WriteRange_FromStart ( uint16_t  i_StartOffset,
-                                        uint16_t  i_ByteCount,
-                                        uint8_t   i_Value)
+bool ByteRingBuffer::WriteRange_FromStart ( uint16_t  i_StartOffset,
+                                            uint16_t  i_ByteCount,
+                                            uint8_t   i_Value)
 {
   if (i_StartOffset >= m_DataLength)
     return false;
@@ -340,9 +340,9 @@ bool RingBuffer::WriteRange_FromStart ( uint16_t  i_StartOffset,
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::WriteRange_FromEnd ( uint16_t  i_EndOffset,  //                ex.1: 6    ex.2: 3
-                                      uint16_t  i_ByteCount,  //                ex.1: 3    ex.2: 6
-                                      uint8_t   i_Value)      // m_DataLength:  ex.1: 8    ex.2: 8
+bool ByteRingBuffer::WriteRange_FromEnd ( uint16_t  i_EndOffset,  //                ex.1: 6    ex.2: 3
+                                          uint16_t  i_ByteCount,  //                ex.1: 3    ex.2: 6
+                                          uint8_t   i_Value)      // m_DataLength:  ex.1: 8    ex.2: 8
 {
   if (i_EndOffset >= m_DataLength)  // ex.1,2: m_DataLength == 8  --> i_EndOffset may be 0 to 7.
     return false;
@@ -371,9 +371,9 @@ bool RingBuffer::WriteRange_FromEnd ( uint16_t  i_EndOffset,  //                
 }
 
 //--------------------------------------------------------------------
-bool RingBuffer::WriteRange_StartToEnd (uint16_t  i_StartOffset,  //                ex.1: 3    ex.2: 6
-                                        uint16_t  i_EndOffset,    //                ex.1: 6    ex.2: 3
-                                        uint8_t   i_Value)        // m_DataLength:  ex.1: 8    ex.2: 8
+bool ByteRingBuffer::WriteRange_StartToEnd (uint16_t  i_StartOffset,  //                ex.1: 3    ex.2: 6
+                                            uint16_t  i_EndOffset,    //                ex.1: 6    ex.2: 3
+                                            uint8_t   i_Value)        // m_DataLength:  ex.1: 8    ex.2: 8
 {
   if (i_StartOffset >= m_DataLength)  // ex.1,2: m_DataLength == 8  --> i_StartOffset may be 0 to 7.
     return false;

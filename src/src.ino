@@ -1,6 +1,6 @@
-#include "RingBuffer.h"
+#include "ByteRingBuffer.h"
 
-RingBuffer* m_pRingBuffer     = nullptr;
+ByteRingBuffer* m_pRingBuffer = nullptr;
 uint16_t  m_RingBufferLength  = 0;
 uint8_t*  m_pDestination      = nullptr;
 uint8_t*  m_pSource           = new uint8_t[0];
@@ -18,7 +18,7 @@ int32_t   m_ValueI32  = 0;
 
 void setup ()
 {
-  RingBuffer::Create (m_RingBufferLength, 0xFF, m_pRingBuffer);
+  ByteRingBuffer::Create (m_RingBufferLength, 0xFF, m_pRingBuffer);
 
   m_pRingBuffer->ReadBytesAndMovePtr (m_ByteCount, m_pDestination, false);
   m_pRingBuffer->ReadValueAndMovePtr (m_ValueBOOL);

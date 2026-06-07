@@ -46,13 +46,13 @@ ByteRingBuffer::ByteRingBuffer (uint8_t*  i_pData,
 }
 
 //--------------------------------------------------------------------
-uint16_t ByteRingBuffer::get_CurrentReadOffset ()
+uint16_t ByteRingBuffer::get_CurrentReadAddress ()
 {
   return m_pCurrentRead - m_pData;
 }
 
 //--------------------------------------------------------------------
-uint16_t ByteRingBuffer::get_CurrentWriteOffset ()
+uint16_t ByteRingBuffer::get_CurrentWriteAddress ()
 {
   return m_pCurrentWrite - m_pData;
 }

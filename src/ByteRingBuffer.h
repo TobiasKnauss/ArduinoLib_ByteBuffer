@@ -43,8 +43,8 @@ private:
 public:
   //-------------------- instance --------------------
 
-  uint16_t get_CurrentReadOffset ();
-  uint16_t get_CurrentWriteOffset ();
+  uint16_t get_CurrentReadAddress ();
+  uint16_t get_CurrentWriteAddress ();
 
   uint8_t* get_pData ();
 
@@ -61,27 +61,31 @@ public:
   //--------------------------------------------------------------------
   // Pointer editing
 
-  // Move the read pointer by the given number.
+  // Move the read-pointer by the given number.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
   void MoveReadPointer (uint16_t i_Count = 1);
 
-  // Move the write pointer by the given number.
+  // Move the write-pointer by the given number.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
   void MoveWritePointer (uint16_t i_Count = 1);
 
-  // Set the read pointer to the given offset.
+  // Set the read-pointer to the given address.
   // If the end of the ring buffer is reached the the wrap option is set, wrap the pointer around to the buffer start.
-  bool SetReadPointer ( uint16_t  i_Offset,
+  // i_Address: The relative position in the ring buffer to which the read-pointer is set.
+  bool SetReadPointer ( uint16_t  i_Address,
                         bool      i_WrapIfNeeded = false);
 
-  // Set the write pointer to the given offset.
+  // Set the write-pointer to the given address.
   // If the end of the ring buffer is reached the the wrap option is set, wrap the pointer around to the buffer start.
-  bool SetWritePointer ( uint16_t  i_Offset,
+  // i_Address: The relative position in the ring buffer to which the write-pointer is set.
+  bool SetWritePointer (uint16_t  i_Address,
                         bool      i_WrapIfNeeded = false);
 
   //--------------------------------------------------------------------
   // ReadByteAndMovePtr, ReadBytesAndMovePtr
 
+  // Read one byte from the ring buffer and move the pointer forward.
+  // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
   uint8_t ReadByteAndMovePtr ();
 
   // Read the specified number of bytes from the ring buffer to the given destination pointer and move the pointer forward.
@@ -128,13 +132,15 @@ public:
   //--------------------------------------------------------------------
   // WriteByteAndMovePtr, WriteBytesAndMovePtr
 
+  // Write the given byte to the ring buffer and move the pointer forward.
+  // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
   void WriteByteAndMovePtr (uint8_t i_Value);
 
   // Write the specified number of bytes from the given source pointer to the ring buffer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
   bool WriteBytesAndMovePtr ( uint16_t  i_ByteCount,
-                            uint8_t*  i_pSource,
-                            bool      i_InvertByteOrder);
+                              uint8_t*  i_pSource,
+                              bool      i_InvertByteOrder);
 
   //--------------------------------------------------------------------
   // WriteValueAndMovePtr
@@ -193,7 +199,7 @@ public:
   // Write the given value to the ring buffer, starting and ending at the given buffer addresses.
   // i_StartAddress:      The relative position in the ring buffer from which on the value is written.
   // i_EndAddress:        The relative position in the ring buffer up to which the value is written. This position is NOT included!
-  //                      If start offset == end offset, the entire buffer will be written.
+  //                      If start address == end address, the entire buffer will be written.
   // i_Value:             The value that is written into the buffer.
   bool WriteRange_StartToEnd (uint16_t  i_StartAddress,
                               uint16_t  i_EndAddress,

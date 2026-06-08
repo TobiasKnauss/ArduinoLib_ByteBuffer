@@ -66,6 +66,7 @@ test (ByteRingBuffer_Create_Test3)
 // - MoveReadPointer ()
 // - SetReadPointer ()
 // - get_CurrentReadAddress ()
+// - get_pData ()
 test (ByteRingBuffer_ReadByteAndMovePtr_Test1)
 {
   //---------- Arrange ----------
@@ -85,15 +86,13 @@ test (ByteRingBuffer_ReadByteAndMovePtr_Test1)
     assertEqual (pRingBuffer->get_CurrentReadAddress (), (index + 1) % length);
     assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)0);
   }
-  assertEqual (pRingBuffer->get_CurrentReadAddress (), (uint16_t)0);
-  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)0);
 
   //---------- Arrange ----------
-  pRingBuffer->WriteByteAndMovePtr (newValue1);
-  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)1);
+  pRingBuffer->get_pData ()[0] = newValue1;
 
   //---------- Act & Assert ----------
   assertEqual (pRingBuffer->get_CurrentReadAddress (), (uint16_t)0);
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)0);
 
   assertEqual (pRingBuffer->ReadByteAndMovePtr (), newValue1);
   assertEqual (pRingBuffer->get_CurrentReadAddress (), (uint16_t)1);
@@ -129,7 +128,7 @@ test (ByteRingBuffer_ReadByteAndMovePtr_Test1)
   assertEqual (pRingBuffer->get_CurrentReadAddress (), (uint16_t)0);
   assertEqual (pRingBuffer->ReadByteAndMovePtr (), newValue1);
 
-  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)1);
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)0);
 
   //---------- Cleanup ----------
   delete (pRingBuffer);
@@ -168,6 +167,7 @@ test (ByteRingBuffer_ReadBytesAndMovePtr_Test1)
 
 //--------------------------------------------------------------------
 // - ReadBytesAndMovePtr ()
+// - get_pData ()
 test (ByteRingBuffer_ReadBytesAndMovePtr_Test2)
 {
   //---------- Arrange ----------
@@ -194,9 +194,8 @@ test (ByteRingBuffer_ReadBytesAndMovePtr_Test2)
     assertEqual (cache[index], index < 7 ? defaultValue : 0x00);
 
   //---------- Arrange ----------
-  pRingBuffer->SetWritePointer (2);  // -> writing starts at address 2
-  for (uint16_t index = 1; index <= length; index++)
-    pRingBuffer->WriteByteAndMovePtr (index * 11);  // -> 88 99 11 22 33 44 55 66 77
+  for (uint16_t index = 0; index < length; index++)
+    pRingBuffer->get_pData()[index] = (((index + 7) % length) + 1) * 11;  // -> 88 99 11 22 33 44 55 66 77
 
   //---------- Act & Assert ----------
   memset (&cache, 0x00, sizeof (cache));
@@ -233,6 +232,7 @@ test (ByteRingBuffer_ReadBytesAndMovePtr_Test2)
 // - MoveWritePointer ()
 // - SetWritePointer ()
 // - get_CurrentWriteAddress ()
+// - get_pData ()
 test (ByteRingBuffer_WriteByteAndMovePtr_Test1)
 {
   //---------- Arrange ----------
@@ -247,7 +247,7 @@ test (ByteRingBuffer_WriteByteAndMovePtr_Test1)
   assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)0);
   for (uint16_t index = 0; index < length; index++)
   {
-    assertEqual (pRingBuffer->ReadByteAndMovePtr (), defaultValue);
+    assertEqual (pRingBuffer->get_pData ()[index], defaultValue);
     assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)0);
   }
   assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)0);
@@ -270,7 +270,7 @@ test (ByteRingBuffer_WriteByteAndMovePtr_Test1)
   //---------- Assert ----------
   for (uint16_t index = 0; index < length * 3; index++)
   {
-    assertEqual (pRingBuffer->ReadByteAndMovePtr (), index % length == 3 ? newValue1 : index % length == 5 ? newValue2 : index % length == 1 ? newValue3 : defaultValue);
+    assertEqual (pRingBuffer->get_pData ()[index % length], index % length == 3 ? newValue1 : index % length == 5 ? newValue2 : index % length == 1 ? newValue3 : defaultValue);
     assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)2);
   }
 
@@ -283,15 +283,15 @@ test (ByteRingBuffer_WriteByteAndMovePtr_Test1)
   assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)8);
 
   //---------- Assert ----------
-  assertEqual (pRingBuffer->ReadByteAndMovePtr (), defaultValue);
-  assertEqual (pRingBuffer->ReadByteAndMovePtr (), newValue3);
-  assertEqual (pRingBuffer->ReadByteAndMovePtr (), newValue3);
-  assertEqual (pRingBuffer->ReadByteAndMovePtr (), newValue3);
-  assertEqual (pRingBuffer->ReadByteAndMovePtr (), defaultValue);
-  assertEqual (pRingBuffer->ReadByteAndMovePtr (), newValue2);
-  assertEqual (pRingBuffer->ReadByteAndMovePtr (), defaultValue);
-  assertEqual (pRingBuffer->ReadByteAndMovePtr (), newValue1);
-  assertEqual (pRingBuffer->ReadByteAndMovePtr (), defaultValue);
+  assertEqual (pRingBuffer->get_pData ()[0], defaultValue);
+  assertEqual (pRingBuffer->get_pData ()[1], newValue3);
+  assertEqual (pRingBuffer->get_pData ()[2], newValue3);
+  assertEqual (pRingBuffer->get_pData ()[3], newValue3);
+  assertEqual (pRingBuffer->get_pData ()[4], defaultValue);
+  assertEqual (pRingBuffer->get_pData ()[5], newValue2);
+  assertEqual (pRingBuffer->get_pData ()[6], defaultValue);
+  assertEqual (pRingBuffer->get_pData ()[7], newValue1);
+  assertEqual (pRingBuffer->get_pData ()[8], defaultValue);
 
   //---------- Act ----------
   pRingBuffer->SetWritePointer (3);
@@ -300,9 +300,100 @@ test (ByteRingBuffer_WriteByteAndMovePtr_Test1)
     pRingBuffer->WriteByteAndMovePtr (index * 10);
 
   //---------- Assert ----------
-  pRingBuffer->SetReadPointer (0);
   for (uint16_t index = 0; index < length; index++)
-    assertEqual (pRingBuffer->ReadByteAndMovePtr (), (uint8_t)(((index + 6) % length) * 10));
+    assertEqual (pRingBuffer->get_pData ()[index], (uint8_t)(((index + 6) % length) * 10));
+
+  //---------- Cleanup ----------
+  delete (pRingBuffer);
+}
+
+//--------------------------------------------------------------------
+// - WriteBytesAndMovePtr ()
+test (ByteRingBuffer_WriteBytesAndMovePtr_Test1)
+{
+  //---------- Arrange ----------
+  uint8_t defaultValue = 0xAB;
+  uint16_t length = 9;
+  ByteRingBuffer* pRingBuffer = nullptr;
+  bool result = ByteRingBuffer::Create (length, defaultValue, pRingBuffer);
+  assertTrue (result);
+  uint8_t cache[10];
+
+  //---------- Act & Assert ----------
+  assertFalse (pRingBuffer->WriteBytesAndMovePtr (0,  nullptr, false));
+  assertFalse (pRingBuffer->WriteBytesAndMovePtr (1,  nullptr, false));
+  assertFalse (pRingBuffer->WriteBytesAndMovePtr (10, nullptr, false));
+  assertTrue  (pRingBuffer->WriteBytesAndMovePtr (0,  cache, false));
+  assertTrue  (pRingBuffer->WriteBytesAndMovePtr (1,  cache, false));
+  assertTrue  (pRingBuffer->WriteBytesAndMovePtr (2,  cache, false));
+  assertTrue  (pRingBuffer->WriteBytesAndMovePtr (9,  cache, false));
+  assertFalse (pRingBuffer->WriteBytesAndMovePtr (10, cache, false));
+  assertTrue  (pRingBuffer->WriteBytesAndMovePtr (0,  cache, true));
+  assertTrue  (pRingBuffer->WriteBytesAndMovePtr (1,  cache, true));
+  assertTrue  (pRingBuffer->WriteBytesAndMovePtr (2,  cache, true));
+  assertTrue  (pRingBuffer->WriteBytesAndMovePtr (9,  cache, true));
+  assertFalse (pRingBuffer->WriteBytesAndMovePtr (10, cache, true));
+
+  //---------- Cleanup ----------
+  delete (pRingBuffer);
+}
+
+//--------------------------------------------------------------------
+// - WriteBytesAndMovePtr ()
+// - get_pData ()
+test (ByteRingBuffer_WriteBytesAndMovePtr_Test2)
+{
+  //---------- Arrange ----------
+  uint8_t defaultValue = 0xAB;
+  uint16_t length = 9;
+  ByteRingBuffer* pRingBuffer = nullptr;
+  bool result = ByteRingBuffer::Create (length, defaultValue, pRingBuffer);
+  assertTrue (result);
+
+  uint8_t cacheSize = 10;
+  uint8_t cache[10];
+  memset (&cache, 0x00, sizeof (cache));
+
+  //---------- Act & Assert ----------
+  pRingBuffer->Clear ();
+  assertTrue (pRingBuffer->WriteBytesAndMovePtr (3, cache, false));
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)3);
+  for (uint16_t index = 0; index < length; index++)
+    assertEqual (pRingBuffer->get_pData ()[index], index < 3 ? 0x00 : defaultValue);
+
+  pRingBuffer->Clear ();
+  assertTrue (pRingBuffer->WriteBytesAndMovePtr (7, cache, false));
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)1);
+  for (uint16_t index = 0; index < length; index++)
+    assertEqual (pRingBuffer->get_pData ()[index], index < 1 || index >= 3 ? 0x00 : defaultValue);
+
+  //---------- Arrange ----------
+  for (uint16_t index = 0; index < cacheSize; index++)
+    cache[index] = ((index + 8) % cacheSize) * 11;  // -> 88 99 00 11 22 33 44 55 66 77
+
+  //---------- Act & Assert ----------
+  pRingBuffer->Clear ();
+  pRingBuffer->SetWritePointer (1);  // -> writing starts at address 0
+  assertTrue (pRingBuffer->WriteBytesAndMovePtr (9, cache + 1, false));  // buffer: 77 99 00 11 22 33 44 55 66
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)1);
+  assertEqual (pRingBuffer->get_pData ()[0], 77);
+  assertEqual (pRingBuffer->get_pData ()[1], 99);
+  assertEqual (pRingBuffer->get_pData ()[2], 00);
+  assertEqual (pRingBuffer->get_pData ()[3], 11);
+  assertEqual (pRingBuffer->get_pData ()[4], 22);
+  assertEqual (pRingBuffer->get_pData ()[5], 33);
+  assertEqual (pRingBuffer->get_pData ()[6], 44);
+  assertEqual (pRingBuffer->get_pData ()[7], 55);
+  assertEqual (pRingBuffer->get_pData ()[8], 66);
+
+  pRingBuffer->Clear ();
+  pRingBuffer->SetWritePointer (5);  // -> writeing starts at address 5
+  assertTrue (pRingBuffer->WriteBytesAndMovePtr (4, cache + 3, true));  // buffer: AB AB AB AB AB 44 33 22 11
+  assertTrue (pRingBuffer->WriteBytesAndMovePtr (2, cache    , true));  // buffer: 99 88 AB AB AB 44 33 22 11
+  assertTrue (pRingBuffer->WriteBytesAndMovePtr (3, cache + 7, true));  // buffer: 99 88 77 66 55 44 33 22 11
+  for (uint16_t index = 0; index < length; index++)
+    assertEqual (pRingBuffer->get_pData ()[index], (uint8_t)((9 - index) * 11));
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)5);
 
   //---------- Cleanup ----------
   delete (pRingBuffer);

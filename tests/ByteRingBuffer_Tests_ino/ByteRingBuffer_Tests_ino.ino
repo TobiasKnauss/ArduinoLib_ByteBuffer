@@ -468,7 +468,7 @@ test (ByteRingBuffer_ReadValueAndMovePtr_Test1)
   uint16_t expectedUI16_inv[9] = { 0x584D, 0x4237, 0x2C21, 0x160B, 0x0058, 0x4D42, 0x372C, 0x2116, 0x0B00 };
 
   uint16_t address = 0;
-  for (int index = 0; index < length; index++)
+  for (uint16_t index = 0; index < length; index++)
   {
     assertEqual (pRingBuffer->get_CurrentReadAddress (), address);
     assertTrue (pRingBuffer->ReadValueAndMovePtr (valueI16, false));
@@ -477,7 +477,7 @@ test (ByteRingBuffer_ReadValueAndMovePtr_Test1)
   }
 
   address = 0;
-  for (int index = 0; index < length; index++)
+  for (uint16_t index = 0; index < length; index++)
   {
     assertEqual (pRingBuffer->get_CurrentReadAddress (), address);
     assertTrue (pRingBuffer->ReadValueAndMovePtr (valueI16, true));
@@ -523,6 +523,221 @@ test (ByteRingBuffer_ReadValueAndMovePtr_Test1)
     assertEqual (pRingBuffer->get_CurrentReadAddress (), address);
     assertTrue (pRingBuffer->ReadValueAndMovePtr (valueI32, true));
     assertEqual (valueI32, (int32_t)expectedUI32_inv[index]);
+    address = (address + 4) % length;
+  }
+}
+
+//--------------------------------------------------------------------
+// - WriteValueAndMovePtr ()
+// - get_pData ()
+test (ByteRingBuffer_WriteValueAndMovePtr_Test1)
+{
+  //---------- Arrange ----------
+  uint8_t defaultValue = 0xAB;
+  uint16_t length = 9;
+  ByteRingBuffer* pRingBuffer = nullptr;
+  bool result = ByteRingBuffer::Create (length, defaultValue, pRingBuffer);
+  assertTrue (result);
+
+  //---------- Act & Assert ----------
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_CurrentWriteAddress (), index);
+    pRingBuffer->WriteValueAndMovePtr (index % 2 > 0);
+  }
+  bool valueB = false;
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_pData ()[index] > 0, valueB);
+    valueB = !valueB;
+  }
+
+  pRingBuffer->Clear ();
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_CurrentWriteAddress (), index);
+    pRingBuffer->WriteValueAndMovePtr ((uint8_t)((8 - index) * 11));
+  }
+  uint8_t valueUI8 = 88;
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_pData ()[index], valueUI8);
+    valueUI8 -= 11;
+  }
+
+  pRingBuffer->Clear ();
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_CurrentWriteAddress (), index);
+    pRingBuffer->WriteValueAndMovePtr ((int8_t)((8 - index) * 11));
+  }
+  int8_t valueI8 = 88;
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_pData ()[index], valueI8);
+    valueI8 -= 11;
+  }
+
+  pRingBuffer->Clear ();
+  uint16_t valueUI16 = 0x0111;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)0); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, false)); valueUI16 += 0x0211;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)2); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, false)); valueUI16 += 0x0311;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)4); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, false)); valueUI16 += 0x0411;
+  assertEqual (pRingBuffer->get_pData ()[0], 0x11); assertEqual (pRingBuffer->get_pData ()[1], 0x01);
+  assertEqual (pRingBuffer->get_pData ()[2], 0x22); assertEqual (pRingBuffer->get_pData ()[3], 0x03);
+  assertEqual (pRingBuffer->get_pData ()[4], 0x33); assertEqual (pRingBuffer->get_pData ()[5], 0x06);
+  assertEqual (pRingBuffer->get_pData ()[6], 0xAB); assertEqual (pRingBuffer->get_pData ()[7], 0xAB);
+  assertEqual (pRingBuffer->get_pData ()[8], 0xAB);
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)6); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, false)); valueUI16 += 0x0511;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)8); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, false)); valueUI16 += 0x0611;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)1); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, false)); valueUI16 += 0x0711;
+  assertEqual (pRingBuffer->get_pData ()[0], 0x0F); assertEqual (pRingBuffer->get_pData ()[1], 0x66);
+  assertEqual (pRingBuffer->get_pData ()[2], 0x15); assertEqual (pRingBuffer->get_pData ()[3], 0x03);
+  assertEqual (pRingBuffer->get_pData ()[4], 0x33); assertEqual (pRingBuffer->get_pData ()[5], 0x06);
+  assertEqual (pRingBuffer->get_pData ()[6], 0x44); assertEqual (pRingBuffer->get_pData ()[7], 0x0A);
+  assertEqual (pRingBuffer->get_pData ()[8], 0x55);
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)3); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, false)); valueUI16 += 0x0811;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)5); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, false)); valueUI16 += 0x0911;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)7); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, false));
+  assertEqual (pRingBuffer->get_pData ()[0], 0x0F); assertEqual (pRingBuffer->get_pData ()[1], 0x66);
+  assertEqual (pRingBuffer->get_pData ()[2], 0x15); assertEqual (pRingBuffer->get_pData ()[3], 0x77);
+  assertEqual (pRingBuffer->get_pData ()[4], 0x1C); assertEqual (pRingBuffer->get_pData ()[5], 0x88);
+  assertEqual (pRingBuffer->get_pData ()[6], 0x24); assertEqual (pRingBuffer->get_pData ()[7], 0x99);
+  assertEqual (pRingBuffer->get_pData ()[8], 0x2D);
+
+  pRingBuffer->Clear ();
+  valueUI16 = 0x0111;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)0); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, true)); valueUI16 += 0x0211;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)2); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, true)); valueUI16 += 0x0311;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)4); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, true)); valueUI16 += 0x0411;
+  assertEqual (pRingBuffer->get_pData ()[0], 0x01); assertEqual (pRingBuffer->get_pData ()[1], 0x11);
+  assertEqual (pRingBuffer->get_pData ()[2], 0x03); assertEqual (pRingBuffer->get_pData ()[3], 0x22);
+  assertEqual (pRingBuffer->get_pData ()[4], 0x06); assertEqual (pRingBuffer->get_pData ()[5], 0x33);
+  assertEqual (pRingBuffer->get_pData ()[6], 0xAB); assertEqual (pRingBuffer->get_pData ()[7], 0xAB);
+  assertEqual (pRingBuffer->get_pData ()[8], 0xAB);
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)6); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, true)); valueUI16 += 0x0511;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)8); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, true)); valueUI16 += 0x0611;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)1); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, true)); valueUI16 += 0x0711;
+  assertEqual (pRingBuffer->get_pData ()[0], 0x55); assertEqual (pRingBuffer->get_pData ()[1], 0x15);
+  assertEqual (pRingBuffer->get_pData ()[2], 0x66); assertEqual (pRingBuffer->get_pData ()[3], 0x22);
+  assertEqual (pRingBuffer->get_pData ()[4], 0x06); assertEqual (pRingBuffer->get_pData ()[5], 0x33);
+  assertEqual (pRingBuffer->get_pData ()[6], 0x0A); assertEqual (pRingBuffer->get_pData ()[7], 0x44);
+  assertEqual (pRingBuffer->get_pData ()[8], 0x0F);
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)3); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, true)); valueUI16 += 0x0811;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)5); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, true)); valueUI16 += 0x0911;
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)7); assertTrue (pRingBuffer->WriteValueAndMovePtr (valueUI16, true));
+  assertEqual (pRingBuffer->get_CurrentWriteAddress (), (uint16_t)0);
+  assertEqual (pRingBuffer->get_pData ()[0], 0x55); assertEqual (pRingBuffer->get_pData ()[1], 0x15);
+  assertEqual (pRingBuffer->get_pData ()[2], 0x66); assertEqual (pRingBuffer->get_pData ()[3], 0x1C);
+  assertEqual (pRingBuffer->get_pData ()[4], 0x77); assertEqual (pRingBuffer->get_pData ()[5], 0x24);
+  assertEqual (pRingBuffer->get_pData ()[6], 0x88); assertEqual (pRingBuffer->get_pData ()[7], 0x2D);
+  assertEqual (pRingBuffer->get_pData ()[8], 0x99);
+
+  uint8_t expected_UI16[27]     = { 0x34, 0x12,   0x78, 0x56,   0xBC, 0x9A,   0x00, 0xDE,   0x44, 0x22,   0x88, 0x66,   0xCC, 0xAA,   0x10, 0xEE,   0x54, 0x32,   0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB };
+  uint8_t expected_UI16_Inv[27] = { 0x12, 0x34,   0x56, 0x78,   0x9A, 0xBC,   0xDE, 0x00,   0x22, 0x44,   0x66, 0x88,   0xAA, 0xCC,   0xEE, 0x10,   0x32, 0x54,   0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB };
+
+  pRingBuffer->Clear ();
+  uint16_t address = 0;
+  int16_t valueI16 = 0x1234;
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_CurrentWriteAddress (), address);
+    assertTrue  (pRingBuffer->WriteValueAndMovePtr (valueI16, false));
+    uint16_t offset = index * 2;
+    for (uint16_t check = 0; check < 2; check++)
+    {
+      assertEqual (pRingBuffer->get_pData ()[(offset + check    ) % length], expected_UI16[ offset + check               ]);
+      assertEqual (pRingBuffer->get_pData ()[(offset + check + 2) % length], expected_UI16[(offset + check + 2 + 18) % 27]);
+    }
+    valueI16 = (valueI16 + 0x0044) & 0x00FF | (valueI16 + 0x4400) & 0xFF00;
+    address = (address + 2) % length;
+  }
+
+  pRingBuffer->Clear ();
+  address = 0;
+  valueI16 = 0x1234;
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_CurrentWriteAddress (), address);
+    assertTrue  (pRingBuffer->WriteValueAndMovePtr (valueI16, true));
+    uint16_t offset = index * 2;
+    for (uint16_t check = 0; check < 2; check++)
+    {
+      assertEqual (pRingBuffer->get_pData ()[(offset + check    ) % length], expected_UI16_Inv[ offset + check               ]);
+      assertEqual (pRingBuffer->get_pData ()[(offset + check + 2) % length], expected_UI16_Inv[(offset + check + 2 + 18) % 27]);
+    }
+    valueI16 = (valueI16 + 0x0044) & 0x00FF | (valueI16 + 0x4400) & 0xFF00;
+    address = (address + 2) % length;
+  }
+
+  uint8_t expected_UI32[45]     = { 0x78, 0x56, 0x34, 0x12,   0x00, 0xDE, 0xBC, 0x9A,   0x88, 0x66, 0x44, 0x22,   0x10, 0xEE, 0xCC, 0xAA,   0x98, 0x76, 0x54, 0x32,   0x20, 0xFE, 0xDC, 0xBA,   0xA8, 0x86, 0x64, 0x42,   0x30, 0x0E, 0xEC, 0xCA,   0xB8, 0x96, 0x74, 0x52,   0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB };
+  uint8_t expected_UI32_Inv[45] = { 0x12, 0x34, 0x56, 0x78,   0x9A, 0xBC, 0xDE, 0x00,   0x22, 0x44, 0x66, 0x88,   0xAA, 0xCC, 0xEE, 0x10,   0x32, 0x54, 0x76, 0x98,   0xBA, 0xDC, 0xFE, 0x20,   0x42, 0x64, 0x86, 0xA8,   0xCA, 0xEC, 0x0E, 0x30,   0x52, 0x74, 0x96, 0xB8,   0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB };
+
+  pRingBuffer->Clear ();
+  address = 0;
+  uint32_t valueUI32 = 0x12345678;
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_CurrentWriteAddress (), address);
+    assertTrue  (pRingBuffer->WriteValueAndMovePtr (valueUI32, false));
+    uint16_t offset = index * 4;
+    for (uint16_t check = 0; check < 2; check++)
+    {
+      assertEqual (pRingBuffer->get_pData ()[(offset + check    ) % length], expected_UI32[ offset + check               ]);
+      assertEqual (pRingBuffer->get_pData ()[(offset + check + 4) % length], expected_UI32[(offset + check + 4 + 36) % 45]);
+    }
+    valueUI32 = (valueUI32 + 0x00000088) & 0x000000FF | (valueUI32 + 0x00008800) & 0x0000FF00 | (valueUI32 + 0x00880000) & 0x00FF0000 | (valueUI32 + 0x88000000) & 0xFF000000;
+    address = (address + 4) % length;
+  }
+
+  pRingBuffer->Clear ();
+  address = 0;
+  valueUI32 = 0x12345678;
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_CurrentWriteAddress (), address);
+    assertTrue  (pRingBuffer->WriteValueAndMovePtr (valueUI32, true));
+    uint16_t offset = index * 4;
+    for (uint16_t check = 0; check < 2; check++)
+    {
+      assertEqual (pRingBuffer->get_pData ()[(offset + check    ) % length], expected_UI32_Inv[ offset + check               ]);
+      assertEqual (pRingBuffer->get_pData ()[(offset + check + 4) % length], expected_UI32_Inv[(offset + check + 4 + 36) % 45]);
+    }
+    valueUI32 = (valueUI32 + 0x00000088) & 0x000000FF | (valueUI32 + 0x00008800) & 0x0000FF00 | (valueUI32 + 0x00880000) & 0x00FF0000 | (valueUI32 + 0x88000000) & 0xFF000000;
+    address = (address + 4) % length;
+  }
+
+  pRingBuffer->Clear ();
+  address = 0;
+  int32_t valueI32 = 0x12345678;
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_CurrentWriteAddress (), address);
+    assertTrue  (pRingBuffer->WriteValueAndMovePtr (valueI32, false));
+    uint16_t offset = index * 4;
+    for (uint16_t check = 0; check < 2; check++)
+    {
+      assertEqual (pRingBuffer->get_pData ()[(offset + check    ) % length], expected_UI32[ offset + check               ]);
+      assertEqual (pRingBuffer->get_pData ()[(offset + check + 4) % length], expected_UI32[(offset + check + 4 + 36) % 45]);
+    }
+    valueI32 = (valueI32 + 0x00000088) & 0x000000FF | (valueI32 + 0x00008800) & 0x0000FF00 | (valueI32 + 0x00880000) & 0x00FF0000 | (valueI32 + 0x88000000) & 0xFF000000;
+    address = (address + 4) % length;
+  }
+
+  pRingBuffer->Clear ();
+  address = 0;
+  valueI32 = 0x12345678;
+  for (uint16_t index = 0; index < length; index++)
+  {
+    assertEqual (pRingBuffer->get_CurrentWriteAddress (), address);
+    assertTrue  (pRingBuffer->WriteValueAndMovePtr (valueI32, true));
+    uint16_t offset = index * 4;
+    for (uint16_t check = 0; check < 2; check++)
+    {
+      assertEqual (pRingBuffer->get_pData ()[(offset + check    ) % length], expected_UI32_Inv[ offset + check               ]);
+      assertEqual (pRingBuffer->get_pData ()[(offset + check + 4) % length], expected_UI32_Inv[(offset + check + 4 + 36) % 45]);
+    }
+    valueI32 = (valueI32 + 0x00000088) & 0x000000FF | (valueI32 + 0x00008800) & 0x0000FF00 | (valueI32 + 0x00880000) & 0x00FF0000 | (valueI32 + 0x88000000) & 0xFF000000;
     address = (address + 4) % length;
   }
 }

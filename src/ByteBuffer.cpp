@@ -424,8 +424,18 @@ bool ByteBuffer::WriteRange_To (uint16_t  i_EndAddress,  //                ex.1:
                                 uint16_t  i_ByteCount,   //                ex.1: 3    ex.2: 6        ex.2: writing xxx__xxx
                                 uint8_t   i_Value)       // m_DataLength:  ex.1: 8    ex.2: 8
 {
-  if (i_EndAddress >= m_DataLength)  // ex.1,2: m_DataLength == 8  --> i_EndAddress may be 0 to 7.
-    return false;
+  if (m_IsRingBuffer)
+  {
+    if (i_EndAddress >= m_DataLength)  // ex.1,2: m_DataLength == 8  --> i_EndAddress may be 0 to 7.
+      return false;
+    if (i_EndAddress == 0)
+      i_EndAddress = m_DataLength;
+  }
+  else
+  {
+    if (i_EndAddress > m_DataLength)
+      return false;
+  }
   if (i_ByteCount == 0)  // nothing to do.
     return true;
   if (i_ByteCount > m_DataLength)  // cannot write more values than the buffer actually has.
@@ -441,8 +451,6 @@ bool ByteBuffer::WriteRange_To (uint16_t  i_EndAddress,  //                ex.1:
     return true;
   }
 
-  if (i_EndAddress == 0)
-    i_EndAddress = m_DataLength;
   if (i_ByteCount <= i_EndAddress)  // the start is before the end, write in one pass (like in ex.1)
   {
     memset (m_pData + i_EndAddress - i_ByteCount, i_Value, i_ByteCount);  // ex.1:  start offset = 6 - 3 = 3  --> writing the bytes 3,4,5.
@@ -466,8 +474,16 @@ bool ByteBuffer::WriteRange_FromTo (uint16_t  i_StartAddress,  //               
 {
   if (i_StartAddress >= m_DataLength)  // ex.1,2: m_DataLength == 8  --> i_StartAddress may be 0 to 7.
     return false;
-  if (i_EndAddress >= m_DataLength)  // ex.1,2: m_DataLength == 8  --> i_EndAddress may be 0 to 7.
-    return false;
+  if (m_IsRingBuffer)
+  {
+    if (i_EndAddress >= m_DataLength)  // ex.1,2: m_DataLength == 8  --> i_EndAddress may be 0 to 7.
+      return false;
+  }
+  else
+  {
+    if (i_EndAddress > m_DataLength)  // ex.1,2: m_DataLength == 8  --> i_EndAddress may be 0 to 8.
+      return false;
+  }
 
   if (!m_IsRingBuffer
   &&  i_StartAddress >= i_EndAddress)
@@ -532,8 +548,18 @@ bool ByteBuffer::CalcChecksumCRC16_To ( uint16_t  i_EndAddress,
                                         uint16_t& o_Checksum)
 {
   o_Checksum = 0;
-  if (i_EndAddress >= m_DataLength)
-    return false;
+  if (m_IsRingBuffer)
+  {
+    if (i_EndAddress >= m_DataLength)
+      return false;
+    if (i_EndAddress == 0)
+      i_EndAddress = m_DataLength;
+  }
+  else
+  {
+    if (i_EndAddress > m_DataLength)
+      return false;
+  }
   if (i_ByteCount == 0)
     return true;
   if (i_ByteCount > m_DataLength)
@@ -541,8 +567,6 @@ bool ByteBuffer::CalcChecksumCRC16_To ( uint16_t  i_EndAddress,
 
   FastCRC16 crc16;
 
-  if (i_EndAddress == 0)
-    i_EndAddress = m_DataLength;
   if (i_ByteCount <= i_EndAddress)
   {
     o_Checksum = crc16.modbus (m_pData + i_EndAddress - i_ByteCount, i_ByteCount);
@@ -565,8 +589,16 @@ bool ByteBuffer::CalcChecksumCRC16_FromTo ( uint16_t  i_StartAddress,
 {
   if (i_StartAddress >= m_DataLength)
     return false;
-  if (i_EndAddress >= m_DataLength)
-    return false;
+  if (m_IsRingBuffer)
+  {
+    if (i_EndAddress >= m_DataLength)
+      return false;
+  }
+  else
+  {
+    if (i_EndAddress > m_DataLength)
+      return false;
+  }
 
   FastCRC16 crc16;
 

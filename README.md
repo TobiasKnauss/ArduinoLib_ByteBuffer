@@ -1,1 +1,1 @@
-# ArduinoLib_ByteRingBuffer
+# ArduinoLib_ByteBuffer

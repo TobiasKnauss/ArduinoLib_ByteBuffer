@@ -1,12 +1,12 @@
 #######################################
-# Syntax Coloring Map For MemoryTools
+# Syntax Coloring Map For ByteBuffer
 #######################################
 
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
 
-ByteRingBuffer	KEYWORD1
+ByteBuffer	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -20,9 +20,9 @@ get_pData	KEYWORD2
 get_Length	KEYWORD2
 
 Clear	KEYWORD2
-Clear_FromStart	KEYWORD2
-Clear_ToEnd	KEYWORD2
-Clear_StartToEnd	KEYWORD2
+Clear_From	KEYWORD2
+Clear_To	KEYWORD2
+Clear_FromTo	KEYWORD2
 
 MoveReadPointer	KEYWORD2
 MoveWritePointer	KEYWORD2
@@ -37,13 +37,13 @@ WriteByteAndMovePtr	KEYWORD2
 WriteBytesAndMovePtr	KEYWORD2
 WriteValueAndMovePtr	KEYWORD2
 
-WriteRange_FromStart	KEYWORD2
-WriteRange_ToEnd	KEYWORD2
-WriteRange_StartToEnd	KEYWORD2
+WriteRange_From	KEYWORD2
+WriteRange_To	KEYWORD2
+WriteRange_FromTo	KEYWORD2
 
-CalcChecksumCRC16_FromStart	KEYWORD2
-CalcChecksumCRC16_ToEnd	KEYWORD2
-CalcChecksumCRC16_StartToEnd	KEYWORD2
+CalcChecksumCRC16_From	KEYWORD2
+CalcChecksumCRC16_To	KEYWORD2
+CalcChecksumCRC16_FromTo	KEYWORD2
 Print	KEYWORD2
 
 #######################################

@@ -1,7 +1,7 @@
-#include "ByteRingBuffer.h"
+#include "ByteBuffer.h"
 
-ByteRingBuffer* m_pRingBuffer = nullptr;
-uint16_t  m_RingBufferLength  = 0;
+ByteBuffer* m_pByteBuffer = nullptr;
+uint16_t  m_ByteBufferLength  = 0;
 uint8_t*  m_pDestination      = nullptr;
 uint8_t*  m_pSource           = new uint8_t[0];
 uint16_t  m_ByteCount         = 0;
@@ -19,44 +19,44 @@ int32_t   m_ValueI32  = 0;
 
 void setup ()
 {
-  ByteRingBuffer::Create (m_RingBufferLength, 0xFF, m_pRingBuffer);
+  ByteBuffer::Create (m_ByteBufferLength, 0xFF, true, m_pByteBuffer);
 
-  m_pRingBuffer->Clear_FromStart  (m_StartOffset, m_ByteCount);
-  m_pRingBuffer->Clear_ToEnd      (m_EndOffset,   m_ByteCount);
-  m_pRingBuffer->Clear_StartToEnd (m_StartOffset, m_EndOffset);
+  m_pByteBuffer->Clear_From   (m_StartOffset, m_ByteCount);
+  m_pByteBuffer->Clear_To     (m_EndOffset,   m_ByteCount);
+  m_pByteBuffer->Clear_FromTo (m_StartOffset, m_EndOffset);
 
-  m_pRingBuffer->ReadBytesAndMovePtr (m_ByteCount, m_pDestination, false);
-  m_pRingBuffer->ReadValueAndMovePtr (m_ValueBOOL);
-  m_pRingBuffer->ReadValueAndMovePtr (m_ValueUI8);
-  m_pRingBuffer->ReadValueAndMovePtr (m_ValueI8);
-  m_pRingBuffer->ReadValueAndMovePtr (m_ValueUI16, false);
-  m_pRingBuffer->ReadValueAndMovePtr (m_ValueI16, false);
-  m_pRingBuffer->ReadValueAndMovePtr (m_ValueUI32, false);
-  m_pRingBuffer->ReadValueAndMovePtr (m_ValueI32, false);
-  m_pRingBuffer->MoveReadPointer ();
-  m_pRingBuffer->SetReadPointer (1);
+  m_pByteBuffer->ReadBytesAndMovePtr (m_ByteCount, m_pDestination, false);
+  m_pByteBuffer->ReadValueAndMovePtr (m_ValueBOOL);
+  m_pByteBuffer->ReadValueAndMovePtr (m_ValueUI8);
+  m_pByteBuffer->ReadValueAndMovePtr (m_ValueI8);
+  m_pByteBuffer->ReadValueAndMovePtr (m_ValueUI16, false);
+  m_pByteBuffer->ReadValueAndMovePtr (m_ValueI16, false);
+  m_pByteBuffer->ReadValueAndMovePtr (m_ValueUI32, false);
+  m_pByteBuffer->ReadValueAndMovePtr (m_ValueI32, false);
+  m_pByteBuffer->MoveReadPointer ();
+  m_pByteBuffer->SetReadPointer (1);
 
-  m_pRingBuffer->WriteBytesAndMovePtr (m_ByteCount, m_pSource, false);
-  m_pRingBuffer->WriteValueAndMovePtr (m_ValueBOOL);
-  m_pRingBuffer->WriteValueAndMovePtr (m_ValueUI8);
-  m_pRingBuffer->WriteValueAndMovePtr (m_ValueI8);
-  m_pRingBuffer->WriteValueAndMovePtr (m_ValueUI16, false);
-  m_pRingBuffer->WriteValueAndMovePtr (m_ValueI16, false);
-  m_pRingBuffer->WriteValueAndMovePtr (m_ValueUI32, false);
-  m_pRingBuffer->WriteValueAndMovePtr (m_ValueI32, false);
-  m_pRingBuffer->MoveWritePointer ();
-  m_pRingBuffer->SetWritePointer (1);
+  m_pByteBuffer->WriteBytesAndMovePtr (m_ByteCount, m_pSource, false);
+  m_pByteBuffer->WriteValueAndMovePtr (m_ValueBOOL);
+  m_pByteBuffer->WriteValueAndMovePtr (m_ValueUI8);
+  m_pByteBuffer->WriteValueAndMovePtr (m_ValueI8);
+  m_pByteBuffer->WriteValueAndMovePtr (m_ValueUI16, false);
+  m_pByteBuffer->WriteValueAndMovePtr (m_ValueI16, false);
+  m_pByteBuffer->WriteValueAndMovePtr (m_ValueUI32, false);
+  m_pByteBuffer->WriteValueAndMovePtr (m_ValueI32, false);
+  m_pByteBuffer->MoveWritePointer ();
+  m_pByteBuffer->SetWritePointer (1);
 
-  m_pRingBuffer->WriteRange_FromStart  (m_StartOffset, m_ByteCount, m_ValueUI8);
-  m_pRingBuffer->WriteRange_ToEnd      (m_EndOffset,   m_ByteCount, m_ValueUI8);
-  m_pRingBuffer->WriteRange_StartToEnd (m_StartOffset, m_EndOffset, m_ValueUI8);
+  m_pByteBuffer->WriteRange_From   (m_StartOffset, m_ByteCount, m_ValueUI8);
+  m_pByteBuffer->WriteRange_To     (m_EndOffset,   m_ByteCount, m_ValueUI8);
+  m_pByteBuffer->WriteRange_FromTo (m_StartOffset, m_EndOffset, m_ValueUI8);
 
-  m_pRingBuffer->CalcChecksumCRC16_FromStart  (m_StartOffset, m_ByteCount, m_Checksum);
-  m_pRingBuffer->CalcChecksumCRC16_ToEnd      (m_EndOffset,   m_ByteCount, m_Checksum);
-  m_pRingBuffer->CalcChecksumCRC16_StartToEnd (m_StartOffset, m_EndOffset, m_Checksum);
+  m_pByteBuffer->CalcChecksumCRC16_From   (m_StartOffset, m_ByteCount, m_Checksum);
+  m_pByteBuffer->CalcChecksumCRC16_To     (m_EndOffset,   m_ByteCount, m_Checksum);
+  m_pByteBuffer->CalcChecksumCRC16_FromTo (m_StartOffset, m_EndOffset, m_Checksum);
 
-  m_pRingBuffer->Print (&Serial);
-  m_pRingBuffer->Print (&Serial, 1, 2);
+  m_pByteBuffer->Print (&Serial);
+  m_pByteBuffer->Print (&Serial, 1, 2);
 }
 
 void loop ()

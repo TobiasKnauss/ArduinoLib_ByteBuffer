@@ -1,9 +1,9 @@
-#ifndef ByteRingBuffer_h
-#define ByteRingBuffer_h
+#ifndef ByteBuffer_h
+#define ByteBuffer_h
 
 #include <Arduino.h>
 
-class ByteRingBuffer
+class ByteBuffer
 {
 //==================== Fields ====================
 private:
@@ -13,31 +13,34 @@ private:
 
   //-------------------- instance --------------------
 
-  uint8_t* m_pData;
-  uint16_t m_DataLength;
-  uint8_t* m_pCurrentRead;
-  uint8_t* m_pCurrentWrite;
-  uint8_t* m_pAfterData;
-  uint8_t  m_DefaultValue;
+  uint8_t*  m_pData;
+  uint16_t  m_DataLength;
+  uint8_t*  m_pCurrentRead;
+  uint8_t*  m_pCurrentWrite;
+  uint8_t*  m_pAfterData;
+  uint8_t   m_DefaultValue;
+  bool      m_IsRingBuffer;
 
 //==================== Constructors ====================
 public:
   //-------------------- static --------------------
 
-  static bool Create (uint16_t          i_RingBufferLength,
-                      uint8_t           i_DefaultValue,
-                      ByteRingBuffer*&  o_pRingBuffer);
+  static bool Create (uint16_t      i_RingBufferLength,
+                      uint8_t       i_DefaultValue,
+                      bool          i_IsRingBuffer,
+                      ByteBuffer*&  o_pRingBuffer);
 
   //-------------------- instance --------------------
 
-  ~ByteRingBuffer ();
+  ~ByteBuffer ();
 
 private:
   //-------------------- instance --------------------
 
-  ByteRingBuffer (uint8_t*  i_pData,
-                  uint16_t  i_DataLength,
-                  uint8_t   i_DefaultValue);
+  ByteBuffer (uint8_t*  i_pData,
+              uint16_t  i_DataLength,
+              uint8_t   i_DefaultValue,
+              bool      i_IsRingBuffer);
 
 //==================== Properties ====================
 public:
@@ -60,32 +63,32 @@ public:
   // Clear the specified number of bytes in the ring buffer, starting at the given buffer address.
   // i_StartAddress:  The relative position in the ring buffer where clearing starts.
   // i_ByteCount:     The number of bytes that are cleared.
-  bool Clear_FromStart (uint16_t  i_StartAddress,
-                        uint16_t  i_ByteCount);
+  bool Clear_From ( uint16_t  i_StartAddress,
+                    uint16_t  i_ByteCount);
 
   // Clear the specified number of bytes in the ring buffer, ending at the given buffer address.
   // i_EndAddress:    The relative position in the ring buffer where clearing ends. This position is NOT included!
   // i_ByteCount:     The number of bytes that are cleared.
-  bool Clear_ToEnd (uint16_t  i_EndAddress,
-                    uint16_t  i_ByteCount);
+  bool Clear_To ( uint16_t  i_EndAddress,
+                  uint16_t  i_ByteCount);
 
   // Clear the ring buffer, starting and ending at the given buffer addresses.
   // i_StartAddress:  The relative position in the ring buffer where clearing starts.
   // i_EndAddress:    The relative position in the ring buffer where clearing ends. This position is NOT included!
   //                  If start address == end address, the entire buffer will be cleared.
-  bool Clear_StartToEnd ( uint16_t  i_StartAddress,
-                          uint16_t  i_EndAddress);
+  bool Clear_FromTo ( uint16_t  i_StartAddress,
+                      uint16_t  i_EndAddress);
 
   //--------------------------------------------------------------------
   // Pointer editing
 
   // Move the read-pointer by the given number.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
-  void MoveReadPointer (uint16_t i_Count = 1);
+  bool MoveReadPointer (uint16_t i_Count = 1);
 
   // Move the write-pointer by the given number.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
-  void MoveWritePointer (uint16_t i_Count = 1);
+  bool MoveWritePointer (uint16_t i_Count = 1);
 
   // Set the read-pointer to the given address.
   // If the end of the ring buffer is reached the the wrap option is set, wrap the pointer around to the buffer start.
@@ -100,11 +103,7 @@ public:
                         bool      i_WrapIfNeeded = false);
 
   //--------------------------------------------------------------------
-  // ReadByteAndMovePtr, ReadBytesAndMovePtr
-
-  // Read one byte from the ring buffer and move the pointer forward.
-  // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
-  uint8_t ReadByteAndMovePtr ();
+  // ReadBytesAndMovePtr
 
   // Read the specified number of bytes from the ring buffer to the given destination pointer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
@@ -117,15 +116,15 @@ public:
 
   // Read a BOOL value from the ring buffer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
-  void ReadValueAndMovePtr (bool& o_Value);
+  bool ReadValueAndMovePtr (bool& o_Value);
 
   // Read an UINT8 value from the ring buffer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
-  void ReadValueAndMovePtr (uint8_t& o_Value);
+  bool ReadValueAndMovePtr (uint8_t& o_Value);
 
   // Read an INT8 value from the ring buffer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
-  void ReadValueAndMovePtr (int8_t& o_Value);
+  bool ReadValueAndMovePtr (int8_t& o_Value);
 
   // Read an UINT16 value from the ring buffer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
@@ -148,11 +147,7 @@ public:
                             bool      i_InvertByteOrder);
 
   //--------------------------------------------------------------------
-  // WriteByteAndMovePtr, WriteBytesAndMovePtr
-
-  // Write the given byte to the ring buffer and move the pointer forward.
-  // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
-  void WriteByteAndMovePtr (uint8_t i_Value);
+  // WriteBytesAndMovePtr
 
   // Write the specified number of bytes from the given source pointer to the ring buffer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
@@ -165,15 +160,15 @@ public:
 
   // Write a BOOL value into the ring buffer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
-  void WriteValueAndMovePtr (bool i_Value);
+  bool WriteValueAndMovePtr (bool i_Value);
 
   // Write an UINT8 value into the ring buffer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
-  void WriteValueAndMovePtr (uint8_t i_Value);
+  bool WriteValueAndMovePtr (uint8_t i_Value);
 
   // Write an INT8 value into the ring buffer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
-  void WriteValueAndMovePtr (int8_t i_Value);
+  bool WriteValueAndMovePtr (int8_t i_Value);
 
   // Write an UINT16 value into the ring buffer and move the pointer forward.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
@@ -202,50 +197,50 @@ public:
   // i_StartAddress:  The relative position in the ring buffer from which on the value is written.
   // i_ByteCount:     The number of bytes that are written in the buffer.
   // i_Value:         The value that is written into the buffer.
-  bool WriteRange_FromStart ( uint16_t  i_StartAddress,
-                              uint16_t  i_ByteCount,
-                              uint8_t   i_Value);
+  bool WriteRange_From (uint16_t  i_StartAddress,
+                        uint16_t  i_ByteCount,
+                        uint8_t   i_Value);
 
   // Write the given value to the specified number of bytes in the ring buffer, ending at the given buffer address.
   // i_EndAddress:    The relative position in the ring buffer up to which the value is written. This position is NOT included!
   // i_ByteCount:     The number of bytes that are written in the buffer.
   // i_Value:         The value that is written into the buffer.
-  bool WriteRange_ToEnd ( uint16_t  i_EndAddress,
-                          uint16_t  i_ByteCount,
-                          uint8_t   i_Value);
+  bool WriteRange_To (uint16_t  i_EndAddress,
+                      uint16_t  i_ByteCount,
+                      uint8_t   i_Value);
 
   // Write the given value to the ring buffer, starting and ending at the given buffer addresses.
   // i_StartAddress:  The relative position in the ring buffer from which on the value is written.
   // i_EndAddress:    The relative position in the ring buffer up to which the value is written. This position is NOT included!
   //                  If start address == end address, the entire buffer will be written.
   // i_Value:         The value that is written into the buffer.
-  bool WriteRange_StartToEnd (uint16_t  i_StartAddress,
-                              uint16_t  i_EndAddress,
-                              uint8_t   i_Value);
+  bool WriteRange_FromTo (uint16_t  i_StartAddress,
+                          uint16_t  i_EndAddress,
+                          uint8_t   i_Value);
 
   // Calculate the checksum of the specified part of the ring buffer.
   // i_StartAddress:  The relative position in the ring buffer from which on the checksum is calculated.
   // i_ByteCount:     The number of bytes for which the checksum is calculated.
   // o_Checksum:      The calculated checksum.
-  bool CalcChecksumCRC16_FromStart (uint16_t  i_StartAddress,
-                                    uint16_t  i_ByteCount,
-                                    uint16_t& o_Checksum);
-
-  // Calculate the checksum of the specified part of the ring buffer.
-  // i_EndAddress:    The relative position in the ring buffer up to which the checksum is calculated. This position is NOT included!
-  // i_ByteCount:     The number of bytes for which the checksum is calculated.
-  // o_Checksum:      The calculated checksum.
-  bool CalcChecksumCRC16_ToEnd (uint16_t  i_EndAddress,
+  bool CalcChecksumCRC16_From ( uint16_t  i_StartAddress,
                                 uint16_t  i_ByteCount,
                                 uint16_t& o_Checksum);
 
   // Calculate the checksum of the specified part of the ring buffer.
+  // i_EndAddress:    The relative position in the ring buffer up to which the checksum is calculated. This position is NOT included!
+  // i_ByteCount:     The number of bytes for which the checksum is calculated.
+  // o_Checksum:      The calculated checksum.
+  bool CalcChecksumCRC16_To ( uint16_t  i_EndAddress,
+                              uint16_t  i_ByteCount,
+                              uint16_t& o_Checksum);
+
+  // Calculate the checksum of the specified part of the ring buffer.
   // i_StartAddress:  The relative position in the ring buffer from which on the checksum is calculated.
   // i_EndAddress:    The relative position in the ring buffer up to which the checksum is calculated. This position is NOT included!
   // o_Checksum:      The calculated checksum.
-  bool CalcChecksumCRC16_StartToEnd ( uint16_t  i_StartAddress,
-                                      uint16_t  i_EndAddress,
-                                      uint16_t& o_Checksum);
+  bool CalcChecksumCRC16_FromTo ( uint16_t  i_StartAddress,
+                                  uint16_t  i_EndAddress,
+                                  uint16_t& o_Checksum);
 
   // Print the hexadecimal values of all data in the ring buffer to the specified output.
   // i_pOutput:       The output stream that prints the data.

@@ -75,7 +75,7 @@ public:
   // Clear the ring buffer, starting and ending at the given buffer addresses.
   // i_StartAddress:  The relative position in the ring buffer where clearing starts.
   // i_EndAddress:    The relative position in the ring buffer where clearing ends. This position is NOT included!
-  //                  If start address == end address, the entire buffer will be cleared.
+  //                  If start address == end address, nothing is done.
   bool Clear_FromTo ( uint16_t  i_StartAddress,
                       uint16_t  i_EndAddress);
 
@@ -212,7 +212,7 @@ public:
   // Write the given value to the ring buffer, starting and ending at the given buffer addresses.
   // i_StartAddress:  The relative position in the ring buffer from which on the value is written.
   // i_EndAddress:    The relative position in the ring buffer up to which the value is written. This position is NOT included!
-  //                  If start address == end address, the entire buffer will be written.
+  //                  If start address == end address, nothing is done.
   // i_Value:         The value that is written into the buffer.
   bool WriteRange_FromTo (uint16_t  i_StartAddress,
                           uint16_t  i_EndAddress,
@@ -237,6 +237,7 @@ public:
   // Calculate the checksum of the specified part of the ring buffer.
   // i_StartAddress:  The relative position in the ring buffer from which on the checksum is calculated.
   // i_EndAddress:    The relative position in the ring buffer up to which the checksum is calculated. This position is NOT included!
+  //                  If start address == end address, nothing is done.
   // o_Checksum:      The calculated checksum.
   bool CalcChecksumCRC16_FromTo ( uint16_t  i_StartAddress,
                                   uint16_t  i_EndAddress,

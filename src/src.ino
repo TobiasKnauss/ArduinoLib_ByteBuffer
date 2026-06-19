@@ -36,7 +36,9 @@ void setup ()
   m_pByteBuffer->ReadValueAndMovePtr (m_ValueI16, false);
   m_pByteBuffer->ReadValueAndMovePtr (m_ValueUI32, false);
   m_pByteBuffer->ReadValueAndMovePtr (m_ValueI32, false);
+  m_pByteBuffer->MovePtrBackAndReadValue (m_ValueUI8);
   m_pByteBuffer->MoveReadPointer ();
+  m_pByteBuffer->MoveReadPointerBackward ();
   m_pByteBuffer->SetReadPointer (1);
 
   m_pByteBuffer->WriteBytesAndMovePtr (m_ByteCount, m_pSourceArray, false);
@@ -48,7 +50,9 @@ void setup ()
   m_pByteBuffer->WriteValueAndMovePtr (m_ValueI16, false);
   m_pByteBuffer->WriteValueAndMovePtr (m_ValueUI32, false);
   m_pByteBuffer->WriteValueAndMovePtr (m_ValueI32, false);
+  m_pByteBuffer->MovePtrBackAndWriteValue (m_ValueUI8);
   m_pByteBuffer->MoveWritePointer ();
+  m_pByteBuffer->MoveWritePointerBackward ();
   m_pByteBuffer->SetWritePointer (1);
 
   m_pByteBuffer->WriteRange_From   (m_StartOffset, m_ByteCount, m_ValueUI8);

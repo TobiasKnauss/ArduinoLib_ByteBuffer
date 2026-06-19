@@ -87,9 +87,17 @@ public:
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
   bool MoveReadPointer (uint16_t i_Count = 1);
 
+  // Move the read-pointer backward by the given number.
+  // If the beginning of the ring buffer is reached, wrap the pointer around to the buffer end.
+  bool MoveReadPointerBackward (uint16_t i_Count = 1);
+
   // Move the write-pointer by the given number.
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
   bool MoveWritePointer (uint16_t i_Count = 1);
+
+  // Move the write-pointer backward by the given number.
+  // If the beginning of the ring buffer is reached, wrap the pointer around to the buffer end.
+  bool MoveWritePointerBackward (uint16_t i_Count = 1);
 
   // Set the read-pointer to the given address.
   // If the end of the ring buffer is reached the the wrap option is set, wrap the pointer around to the buffer start.
@@ -154,6 +162,13 @@ public:
                             bool      i_InvertByteOrder);
 
   //--------------------------------------------------------------------
+  // MovePtrBackAndReadValue
+
+  // Move the pointer backward and read an UINT8 value from the ring buffer.
+  // If the start of the ring buffer is reached, wrap the pointer around to the buffer end.
+  bool MovePtrBackAndReadValue (uint8_t& o_Value);
+
+  //--------------------------------------------------------------------
   // WriteBytesAndMovePtr
 
   // Write the specified number of bytes from the given source pointer to the ring buffer and move the pointer forward.
@@ -202,6 +217,13 @@ public:
   // If the end of the ring buffer is reached, wrap the pointer around to the buffer start.
   bool WriteValueAndMovePtr ( int32_t   i_Value,
                               bool      i_InvertByteOrder);
+
+  //--------------------------------------------------------------------
+  // MovePtrBackAndWriteValue
+
+  // Move the pointer backward and write an UINT8 value into the ring buffer.
+  // If the start of the ring buffer is reached, wrap the pointer around to the buffer end.
+  bool MovePtrBackAndWriteValue (uint8_t i_Value);
 
   //--------------------------------------------------------------------
   // WriteRange_...

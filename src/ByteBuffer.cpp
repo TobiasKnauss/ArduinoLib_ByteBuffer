@@ -130,6 +130,29 @@ bool ByteBuffer::MoveReadPointer (uint16_t i_Count)
 }
 
 //--------------------------------------------------------------------
+bool ByteBuffer::MoveReadPointerBackward (uint16_t i_Count)
+{
+  uint8_t* pCurrentRead = m_pCurrentRead - i_Count;
+
+  if (!m_IsRingBuffer)  // Notice: The pointer of a linear buffer may point to the first position after the buffer, but not to any position beyond that.
+  {
+    if (pCurrentRead < m_pData)
+      return false;
+
+    m_pCurrentRead = pCurrentRead;
+    return true;
+  }
+
+  if (pCurrentRead < m_pData)
+    pCurrentRead += m_DataLength;
+  if (pCurrentRead < m_pData)
+    return false;
+
+  m_pCurrentRead = pCurrentRead;
+  return true;
+}
+
+//--------------------------------------------------------------------
 bool ByteBuffer::MoveWritePointer (uint16_t i_Count)
 {
   uint8_t* pCurrentWrite = m_pCurrentWrite + i_Count;
@@ -146,6 +169,29 @@ bool ByteBuffer::MoveWritePointer (uint16_t i_Count)
   if (pCurrentWrite >= m_pAfterData)
     pCurrentWrite -= m_DataLength;
   if (pCurrentWrite >= m_pAfterData)
+    return false;
+
+  m_pCurrentWrite = pCurrentWrite;
+  return true;
+}
+
+//--------------------------------------------------------------------
+bool ByteBuffer::MoveWritePointerBackward (uint16_t i_Count)
+{
+  uint8_t* pCurrentWrite = m_pCurrentWrite - i_Count;
+
+  if (!m_IsRingBuffer)  // Notice: The pointer of a linear buffer may point to the first position after the buffer, but not to any position beyond that.
+  {
+    if (pCurrentWrite < m_pData)
+      return false;
+
+    m_pCurrentWrite = pCurrentWrite;
+    return true;
+  }
+
+  if (pCurrentWrite < m_pData)
+    pCurrentWrite += m_DataLength;
+  if (pCurrentWrite < m_pData)
     return false;
 
   m_pCurrentWrite = pCurrentWrite;
@@ -293,15 +339,17 @@ bool ByteBuffer::ReadBytesAndMovePtr (uint16_t    i_ByteCount,
 
   if (i_InvertByteOrder)
   {
+    if (!MoveReadPointer (i_ByteCount))
+      return false;
     for (uint16_t index = 1; index <= i_ByteCount; index++)
     {
       uint8_t valueUI8;
-      if (!ReadValueAndMovePtr (valueUI8))
+      if (!MovePtrBackAndReadValue (valueUI8))
         return false;  // should not happen because of previous check
       if (!i_pDestination->WriteValueAndMovePtr (valueUI8))
         return false;  // should not happen because of previous check
     }
-    return true;
+    return MoveReadPointer (i_ByteCount);
   }
 
   for (int pass = 1; pass <= 3; pass++)
@@ -378,6 +426,16 @@ bool ByteBuffer::ReadValueAndMovePtr (int32_t&  o_Value,
                                       bool      i_InvertByteOrder)
 {
   return ReadBytesAndMovePtr (sizeof (int32_t), (uint8_t*)&o_Value, i_InvertByteOrder);
+}
+
+//--------------------------------------------------------------------
+bool ByteBuffer::MovePtrBackAndReadValue (uint8_t& o_Value)
+{
+  if (!MoveReadPointerBackward ())
+    return false;
+
+  o_Value = *m_pCurrentRead;
+  return true;
 }
 
 //--------------------------------------------------------------------
@@ -473,15 +531,17 @@ bool ByteBuffer::WriteBytesAndMovePtr ( uint16_t    i_ByteCount,
 
   if (i_InvertByteOrder)
   {
+    if (!MoveWritePointer (i_ByteCount))
+      return false;
     for (uint16_t index = 1; index <= i_ByteCount; index++)
     {
       uint8_t valueUI8;
       if (!i_pSource->ReadValueAndMovePtr (valueUI8))
         return false;  // should not happen because of previous check
-      if (!WriteValueAndMovePtr (valueUI8))
+      if (!MovePtrBackAndWriteValue (valueUI8))
         return false;  // should not happen because of previous check
     }
-    return true;
+    return MoveWritePointer (i_ByteCount);
   }
 
   for (int pass = 1; pass <= 3; pass++)
@@ -555,6 +615,16 @@ bool ByteBuffer::WriteValueAndMovePtr ( int32_t   i_Value,
                                         bool      i_InvertByteOrder)
 {
   return WriteBytesAndMovePtr (sizeof (int32_t), (uint8_t*)&i_Value, i_InvertByteOrder);
+}
+
+//--------------------------------------------------------------------
+bool ByteBuffer::MovePtrBackAndWriteValue (uint8_t i_Value)
+{
+  if (!MoveWritePointerBackward ())
+    return false;
+
+  *m_pCurrentWrite = i_Value;
+  return true;
 }
 
 //--------------------------------------------------------------------

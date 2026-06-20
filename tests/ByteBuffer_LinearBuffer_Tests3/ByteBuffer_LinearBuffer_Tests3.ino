@@ -15,9 +15,9 @@ test (ByteBuffer_LinearBuffer_WriteBytesAndMovePtr_Test1)
   uint8_t cache[10];
 
   //---------- Act & Assert ----------
-  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (0,  nullptr, false));
-  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (1,  nullptr, false));
-  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (10, nullptr, false));
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (0,  (uint8_t*)nullptr, false));
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (1,  (uint8_t*)nullptr, false));
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (10, (uint8_t*)nullptr, false));
   assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (0,  cache, false));
   assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (2,  cache, false));
   assertFalse (pLinearBuffer->WriteBytesAndMovePtr (9,  cache, false));

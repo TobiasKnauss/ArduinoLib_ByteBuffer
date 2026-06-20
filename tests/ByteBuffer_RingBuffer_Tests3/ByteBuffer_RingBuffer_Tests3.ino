@@ -15,9 +15,9 @@ test (ByteBuffer_RingBuffer_WriteBytesAndMovePtr_Test1)
   uint8_t cache[10];
 
   //---------- Act & Assert ----------
-  assertFalse (pRingBuffer->WriteBytesAndMovePtr (0,  nullptr, false));
-  assertFalse (pRingBuffer->WriteBytesAndMovePtr (1,  nullptr, false));
-  assertFalse (pRingBuffer->WriteBytesAndMovePtr (10, nullptr, false));
+  assertFalse (pRingBuffer->WriteBytesAndMovePtr (0,  (uint8_t*)nullptr, false));
+  assertFalse (pRingBuffer->WriteBytesAndMovePtr (1,  (uint8_t*)nullptr, false));
+  assertFalse (pRingBuffer->WriteBytesAndMovePtr (10, (uint8_t*)nullptr, false));
   assertTrue  (pRingBuffer->WriteBytesAndMovePtr (0,  cache, false));
   assertTrue  (pRingBuffer->WriteBytesAndMovePtr (1,  cache, false));
   assertTrue  (pRingBuffer->WriteBytesAndMovePtr (2,  cache, false));

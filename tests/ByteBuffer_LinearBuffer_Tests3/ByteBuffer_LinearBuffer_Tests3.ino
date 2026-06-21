@@ -3,8 +3,8 @@
 #include <ByteBuffer.h>
 
 //--------------------------------------------------------------------
-// - WriteBytesAndMovePtr ()
-test (ByteBuffer_LinearBuffer_WriteBytesAndMovePtr_Test1)
+// - WriteBytesAndMovePtr (array)
+test (ByteBuffer_LinearBuffer_WriteBytesAndMovePtr_FromArray_Test1)
 {
   //---------- Arrange ----------
   uint8_t defaultValue = 0xAB;
@@ -43,9 +43,9 @@ test (ByteBuffer_LinearBuffer_WriteBytesAndMovePtr_Test1)
 }
 
 //--------------------------------------------------------------------
-// - WriteBytesAndMovePtr ()
+// - WriteBytesAndMovePtr (array)
 // - get_pData ()
-test (ByteBuffer_LinearBuffer_WriteBytesAndMovePtr_Test2)
+test (ByteBuffer_LinearBuffer_WriteBytesAndMovePtr_FromArray_Test2)
 {
   //---------- Arrange ----------
   uint8_t defaultValue = 0xAB;
@@ -109,6 +109,236 @@ test (ByteBuffer_LinearBuffer_WriteBytesAndMovePtr_Test2)
   for (uint16_t index = 0; index < length; index++)
     assertEqual (pLinearBuffer->get_pData ()[index], (uint8_t)((9 - index) * 11));
   assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)5);
+
+  //---------- Cleanup ----------
+  delete (pLinearBuffer);
+}
+
+//--------------------------------------------------------------------
+// - WriteBytesAndMovePtr (ByteBuffer)
+test (ByteBuffer_LinearBuffer_WriteBytesAndMovePtr_FromLinearBuffer_Test1)
+{
+  //---------- Arrange ----------
+  uint8_t defaultValue = 0xAB;
+  uint16_t length = 9;
+  ByteBuffer* pLinearBuffer = nullptr;
+  bool result = ByteBuffer::Create (length, defaultValue, false, pLinearBuffer);
+  assertTrue (result);
+
+  uint16_t srcLength = 8;
+  ByteBuffer* pSrcBuffer = nullptr;
+  assertTrue (ByteBuffer::Create (srcLength, defaultValue, false, pSrcBuffer));  // source is linear buffer
+  for (uint16_t index = 0; index < srcLength; index++)
+    pSrcBuffer->get_pData ()[index] = (uint8_t)((index + 1) * 11);  // -> 11 22 33 44 55 66 77 88  =  0x 0B 16 21 2C 37 42 4D 58
+
+  //---------- Act & Assert ----------
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (0,  (ByteBuffer*)nullptr, false));
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)0);
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (1,  (ByteBuffer*)nullptr, false));
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)0);
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (10, (ByteBuffer*)nullptr, false));
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)0);
+  for (uint16_t index = 0; index < length; index++) assertEqual (pLinearBuffer->get_pData()[index], defaultValue);
+
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (0, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)0);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], defaultValue);
+
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (1, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)1);
+  assertEqual (pSrcBuffer   ->get_CurrentWriteAddress (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentReadAddress  (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)1);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < 1 ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)3);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)3);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < 3 ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (7, pSrcBuffer, false));
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (6, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)3);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)3);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < 3 ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (5, pSrcBuffer, false));
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (1, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)8);
+  assertEqual (pSrcBuffer   ->get_CurrentWriteAddress (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentReadAddress  (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)8);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < 8 ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  pLinearBuffer->Clear ();
+  pLinearBuffer->SetWritePointer (3);
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, true));
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (1, pSrcBuffer, true));
+  pSrcBuffer->SetReadPointer (1);
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, true));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)3);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)5);
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (5, pSrcBuffer, true));
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (4, pSrcBuffer, true));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)7);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)9);
+  uint8_t expectedUI8_a[9] = { defaultValue, defaultValue, defaultValue, 33, 22, 77, 66, 55, 44 };
+  for (uint16_t index = 0; index < length; index++) assertEqual (pLinearBuffer->get_pData()[index], expectedUI8_a[index]);
+
+  pLinearBuffer->SetWritePointer (0);
+  pSrcBuffer   ->SetReadPointer  (4);
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (3, pSrcBuffer, true));
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, true));
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (1, pSrcBuffer, true));
+  uint8_t expectedUI8_b[9] = { 77, 66, 55, 88, 22, 77, 66, 55, 44 };
+  for (uint16_t index = 0; index < length; index++) assertEqual (pLinearBuffer->get_pData()[index], expectedUI8_b[index]);
+
+  //---------- Cleanup ----------
+  delete (pLinearBuffer);
+}
+
+//--------------------------------------------------------------------
+// - WriteBytesAndMovePtr (ByteBuffer)
+test (ByteBuffer_LinearBuffer_WriteBytesAndMovePtr_FromLinearBuffer_Test2)
+{
+  //---------- Arrange ----------
+  uint8_t defaultValue = 0xAB;
+  uint16_t length = 9;
+  ByteBuffer* pLinearBuffer = nullptr;
+  bool result = ByteBuffer::Create (length, defaultValue, false, pLinearBuffer);
+  assertTrue (result);
+
+  uint16_t srcLength = 10;
+  ByteBuffer* pSrcBuffer = nullptr;
+  assertTrue (ByteBuffer::Create (srcLength, defaultValue, false, pSrcBuffer));  // destination is linear buffer
+  for (uint16_t index = 0; index < srcLength; index++)
+    pSrcBuffer->get_pData ()[index] = (uint8_t)((index + 1) * 11);  // -> 11 22 33 44 55 66 77 88 99 110 =  0x 0B 16 21 2C 37 42 4D 58 63 6E
+
+  //---------- Act & Assert ----------
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (1, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)1);
+  assertEqual (pSrcBuffer   ->get_CurrentWriteAddress (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentReadAddress  (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)1);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < 1 ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)3);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)3);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < 3 ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (7, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)3);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)3);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < 3 ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (6, pSrcBuffer, false));
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (1, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)9);
+  assertEqual (pSrcBuffer   ->get_CurrentWriteAddress (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentReadAddress  (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)9);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < length ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  pLinearBuffer->Clear ();
+  pLinearBuffer->SetWritePointer (3);
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, true));
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (1, pSrcBuffer, true));
+  pSrcBuffer->SetReadPointer (1);
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, true));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)3);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)6);
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (4, pSrcBuffer, true));
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (3, pSrcBuffer, true));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)6);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)9);
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (1, pSrcBuffer, true));
+  uint8_t expectedUI8_a[9] = { defaultValue, defaultValue, defaultValue, 110, 33, 22, 66, 55, 44 };
+  for (uint16_t index = 0; index < length; index++) assertEqual (pLinearBuffer->get_pData()[index], expectedUI8_a[index]);
+
+  pLinearBuffer->SetWritePointer (0);
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, true));
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (3, pSrcBuffer, true));
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, true));
+  uint8_t expectedUI8_b[9] = { 88, 77, 110, 99, 33, 22, 66, 55, 44 };
+  for (uint16_t index = 0; index < length; index++) assertEqual (pLinearBuffer->get_pData()[index], expectedUI8_b[index]);
+
+  //---------- Cleanup ----------
+  delete (pLinearBuffer);
+}
+
+//--------------------------------------------------------------------
+// - WriteBytesAndMovePtr (ByteBuffer)
+test (ByteBuffer_LinearBuffer_WriteBytesAndMovePtr_FromRingBuffer_Test1)
+{
+  //---------- Arrange ----------
+  uint8_t defaultValue = 0xAB;
+  uint16_t length = 9;
+  ByteBuffer* pLinearBuffer = nullptr;
+  bool result = ByteBuffer::Create (length, defaultValue, false, pLinearBuffer);
+  assertTrue (result);
+
+  uint16_t srcLength = 8;
+  ByteBuffer* pSrcBuffer = nullptr;
+  assertTrue (ByteBuffer::Create (srcLength, defaultValue, true, pSrcBuffer));  // source is ring buffer
+  for (uint16_t index = 0; index < srcLength; index++)
+    pSrcBuffer->get_pData ()[index] = (uint8_t)((index + 1) * 11);  // -> 11 22 33 44 55 66 77 88  =  0x 0B 16 21 2C 37 42 4D 58
+
+  //---------- Act & Assert ----------
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (1, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)1);
+  assertEqual (pSrcBuffer   ->get_CurrentWriteAddress (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentReadAddress  (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)1);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < 1 ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)3);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)3);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < 3 ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (7, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)3);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)3);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], index < 3 ? (uint8_t)((index + 1) * 11) : defaultValue);
+
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (6, pSrcBuffer, false));
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (1, pSrcBuffer, false));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)1);
+  assertEqual (pSrcBuffer   ->get_CurrentWriteAddress (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentReadAddress  (), (uint16_t)0);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)9);
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pSrcBuffer   ->get_pData()[index], (uint8_t)((index + 1) * 11));
+  for (uint16_t index = 0; index < length;    index++) assertEqual (pLinearBuffer->get_pData()[index], (uint8_t)((index % srcLength + 1) * 11));
+
+  pLinearBuffer->Clear ();
+  pLinearBuffer->SetWritePointer (3);
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, true));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)3);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)5);
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (4, pSrcBuffer, true));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)7);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)9);
+  assertFalse (pLinearBuffer->WriteBytesAndMovePtr (2, pSrcBuffer, true));
+  pLinearBuffer->SetWritePointer (0);
+  assertTrue  (pLinearBuffer->WriteBytesAndMovePtr (4, pSrcBuffer, true));
+  assertEqual (pSrcBuffer   ->get_CurrentReadAddress  (), (uint16_t)3);
+  assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)4);
+  uint8_t expectedUI8[9] = { 33, 22, 11, 88, 22, 77, 66, 55, 44 };
+  for (uint16_t index = 0; index < srcLength; index++) assertEqual (pLinearBuffer->get_pData()[index], expectedUI8[index]);
 
   //---------- Cleanup ----------
   delete (pLinearBuffer);

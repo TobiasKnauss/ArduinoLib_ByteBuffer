@@ -166,17 +166,13 @@ test (ByteBuffer_LinearBuffer_ReadBytesAndMovePtr_ToLinearBuffer_Test1)
   for (uint16_t index = 0; index < destLength; index++) assertEqual (pDestBuffer  ->get_pData()[index], index < 3 ? (uint8_t)((index + 1) * 11) : defaultValue);
 
   assertTrue  (pLinearBuffer->ReadBytesAndMovePtr (5, pDestBuffer, false));
+  assertFalse (pLinearBuffer->ReadBytesAndMovePtr (1, pDestBuffer, false));
   assertEqual (pLinearBuffer->get_CurrentReadAddress  (), (uint16_t)8);
   assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)0);
   assertEqual (pDestBuffer  ->get_CurrentReadAddress  (), (uint16_t)0);
   assertEqual (pDestBuffer  ->get_CurrentWriteAddress (), (uint16_t)8);
   for (uint16_t index = 0; index < length;     index++) assertEqual (pLinearBuffer->get_pData()[index], (uint8_t)((index + 1) * 11));
   for (uint16_t index = 0; index < destLength; index++) assertEqual (pDestBuffer  ->get_pData()[index], (uint8_t)((index + 1) * 11));
-
-  assertFalse (pLinearBuffer->ReadBytesAndMovePtr (2, pDestBuffer, true));
-  assertFalse (pLinearBuffer->ReadBytesAndMovePtr (1, pDestBuffer, true));
-  assertEqual (pLinearBuffer->get_CurrentReadAddress  (), (uint16_t)8);
-  assertEqual (pDestBuffer  ->get_CurrentWriteAddress (), (uint16_t)8);
 
   pDestBuffer->Clear ();
   pDestBuffer->SetWritePointer (3);
@@ -243,6 +239,7 @@ test (ByteBuffer_LinearBuffer_ReadBytesAndMovePtr_ToLinearBuffer_Test2)
   for (uint16_t index = 0; index < destLength; index++) assertEqual (pDestBuffer  ->get_pData()[index], index < 3 ? (uint8_t)((index + 1) * 11) : defaultValue);
 
   assertTrue  (pLinearBuffer->ReadBytesAndMovePtr (6, pDestBuffer, false));
+  assertFalse (pLinearBuffer->ReadBytesAndMovePtr (1, pDestBuffer, false));
   assertEqual (pLinearBuffer->get_CurrentReadAddress  (), (uint16_t)9);
   assertEqual (pLinearBuffer->get_CurrentWriteAddress (), (uint16_t)0);
   assertEqual (pDestBuffer  ->get_CurrentReadAddress  (), (uint16_t)0);
